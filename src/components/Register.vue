@@ -48,8 +48,13 @@
                     console.log("密码不一致");
                     return;
                 }
-                let [err, data] = await register(this.username, this.pwd);
-                console.log(err, data);
+
+                try {
+                    let data = await register(this.username, this.pwd);
+                    console.log(data);
+                } catch (e) {
+                    console.log("登录失败", e);
+                }
             },
         },
     });

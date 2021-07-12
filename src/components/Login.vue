@@ -1,28 +1,21 @@
 <template>
     <div class="about">
-        <form>
-            <label for="username">
-                姓名
-                <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    v-model="username"
-                />
-            </label>
-            <br />
-            <label for="login-pwd">
-                密码
-                <input
-                    type="password"
-                    name="pwd"
-                    id="login-pwd"
-                    v-model="pwd"
-                />
-            </label>
-            <br />
-            <button @click="Login">登录</button>
-        </form>
+        <label for="username">
+            姓名
+            <input
+                type="text"
+                name="username"
+                id="username"
+                v-model="username"
+            />
+        </label>
+        <br />
+        <label for="login-pwd">
+            密码
+            <input type="password" name="pwd" id="login-pwd" v-model="pwd" />
+        </label>
+        <br />
+        <button @click="Login">登录</button>
     </div>
 </template>
 
@@ -39,8 +32,13 @@
             };
         },
         methods: {
-            Login: function() {
-                login(this.username, this.pwd);
+            Login: async function() {
+                try {
+                    let data = await login(this.username, this.pwd);
+                    console.log(data);
+                } catch (e) {
+                    console.log("登录失败", e);
+                }
             },
         },
     });
