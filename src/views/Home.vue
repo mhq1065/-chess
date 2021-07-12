@@ -1,18 +1,31 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+    <div class="home">
+        <div v-if="tab == 'login'">
+            <button @click="tab='register'">跳转注册</button>
+            <Login />
+        </div>
+        <div v-else>
+            <button @click="tab='login'">返回登录</button>
+            <Register />
+        </div>
+    </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+    import Vue from "vue";
+    import Login from "@/components/Login.vue"; // @ is an alias to /src
+    import Register from "@/components/Register.vue"; // @ is an alias to /src
 
-export default Vue.extend({
-  name: 'Home',
-  components: {
-    HelloWorld,
-  },
-});
+    export default Vue.extend({
+        name: "Home",
+        components: {
+            Login,
+            Register,
+        },
+        data() {
+            return {
+                tab: "login",
+            };
+        },
+    });
 </script>
