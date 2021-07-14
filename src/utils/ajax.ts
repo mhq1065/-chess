@@ -41,7 +41,7 @@ service.interceptors.response.use(
     (error) => {
         //请求错误处理
         console.log(error);
-        Promise.reject(error);
+        return Promise.reject(error);
     }
 );
 

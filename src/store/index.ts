@@ -3,13 +3,26 @@ import Vuex from "vuex";
 
 Vue.use(Vuex);
 const JWT_KEY = "JWT";
+const USER_NAME = "user";
+const USER_PASSWORD = "pwd";
+interface userInterface {
+    username: string;
+    pwd: string;
+}
 export default new Vuex.Store({
     state: {
         jwt: localStorage.getItem(JWT_KEY) || "",
+        usermsg: {
+            username: localStorage.getItem(USER_NAME) || "",
+            pwd: localStorage.getItem(USER_PASSWORD) || "",
+        },
     },
     getters: {
         getJWT(state) {
             return localStorage.getItem(JWT_KEY);
+        },
+        getUser(state) {
+            return state.usermsg;
         },
     },
     mutations: {
@@ -25,6 +38,19 @@ export default new Vuex.Store({
             state.jwt = "";
             // 2. localStorage做持久清除
             localStorage.removeItem(JWT_KEY);
+        },
+        updateUser(state, user: userInterface) {
+            state.usermsg = user;
+            localStorage.setItem(USER_NAME, user.username);
+            localStorage.setItem(USER_PASSWORD, user.pwd);
+        },
+        clearUser(state) {
+            state.usermsg = {
+                username: "",
+                pwd: "",
+            };
+            localStorage.setItem(USER_NAME, "");
+            localStorage.setItem(USER_PASSWORD, "");
         },
     },
     actions: {},

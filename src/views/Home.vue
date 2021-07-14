@@ -4,12 +4,20 @@
             <div class="column is-7"></div>
             <div class="column is-4">
                 <div class="box">
+                    <div class="tabs">
+                        <ul>
+                            <li :class="{ 'is-active': tab == 'login' }">
+                                <a @click="tab = 'login'">登录</a>
+                            </li>
+                            <li :class="{ 'is-active': tab == 'register' }">
+                                <a @click="tab = 'register'">注册</a>
+                            </li>
+                        </ul>
+                    </div>
                     <div v-if="tab == 'login'">
-                        <button @click="tab = 'register'">跳转注册</button>
                         <Login />
                     </div>
                     <div v-else>
-                        <button @click="tab = 'login'">返回登录</button>
                         <Register />
                     </div>
                 </div>

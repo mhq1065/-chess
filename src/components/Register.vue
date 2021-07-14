@@ -1,3 +1,52 @@
+<script lang="ts">
+    import Vue from "vue";
+    import { register } from "@/utils/user";
+    import modal from "./Modal.vue";
+
+    export default Vue.extend({
+        name: "Register",
+        data: function() {
+            return {
+                username: "",
+                pwd: "",
+                confirmPwd: "",
+                isShowModal: false,
+                modalMsg: "",
+            };
+        },
+        computed: {
+            isValid: function(): boolean {
+                return this.pwd === this.confirmPwd;
+            },
+        },
+        components: {
+            modal,
+        },
+        methods: {
+            reg: async function() {
+                if (this.username == "") {
+                    this.showModal("用户名不能为空");
+                    return;
+                } else if (this.pwd == "") {
+                    this.showModal("密码不能为空");
+                    return;
+                } else if (this.pwd !== this.confirmPwd) {
+                    this.showModal("密码不一致");
+                    return;
+                }
+
+                try {
+                    let data = await register(this.username, this.pwd);
+                    console.log(data);
+                } catch (e) {
+                    this.showModal(e);
+                    console.log("注册失败", e);
+                }
+            },
+        },
+    });
+</script>
+
 <template>
     <div class="container ">
         <!-- 用户名 -->
@@ -58,41 +107,8 @@
                 <button class="button is-link" @click="reg">注册</button>
             </div>
         </div>
+        <modal :isShow="isShowModal" @closeModal="isShowModal = false">
+            {{ modalMsg }}
+        </modal>
     </div>
 </template>
-
-<script lang="ts">
-    import Vue from "vue";
-    import { register } from "@/utils/user";
-
-    export default Vue.extend({
-        name: "Register",
-        data: function() {
-            return {
-                username: "youguess",
-                pwd: "",
-                confirmPwd: "",
-            };
-        },
-        computed: {
-            isValid: function(): boolean {
-                return this.pwd === this.confirmPwd;
-            },
-        },
-        methods: {
-            reg: async function() {
-                if (this.pwd !== this.confirmPwd) {
-                    console.log("密码不一致");
-                    return;
-                }
-
-                try {
-                    let data = await register(this.username, this.pwd);
-                    console.log(data);
-                } catch (e) {
-                    console.log("登录失败", e);
-                }
-            },
-        },
-    });
-</script>
