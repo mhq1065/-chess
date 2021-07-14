@@ -9,7 +9,7 @@ const service = axios.create({
     withCredentials: true,
     headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-        Authorition: `Bearer ${store.getters.getJWT}`,
+        Authorization: `Bearer ${store.getters.getJWT}`,
     },
 });
 service.interceptors.request.use(

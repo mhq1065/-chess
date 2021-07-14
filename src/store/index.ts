@@ -9,7 +9,7 @@ export default new Vuex.Store({
     },
     getters: {
         getJWT(state) {
-            return state.jwt;
+            return localStorage.getItem(JWT_KEY);
         },
     },
     mutations: {
