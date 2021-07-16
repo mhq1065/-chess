@@ -26,7 +26,8 @@
     </div>
 </template>
 <script>
-    export default {
+    import Vue from "vue";
+    export default Vue.extend({
         name: "modal",
         props: {
             isShow: Boolean,
@@ -36,5 +37,5 @@
                 this.$emit("closeModal");
             },
         },
-    };
+    });
 </script>

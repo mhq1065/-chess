@@ -23,6 +23,10 @@
             modal,
         },
         methods: {
+            showModal: function(msg: string) {
+                this.modalMsg = msg;
+                this.isShowModal = true;
+            },
             reg: async function() {
                 if (this.username == "") {
                     this.showModal("用户名不能为空");

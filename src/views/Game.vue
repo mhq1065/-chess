@@ -1,18 +1,49 @@
+/* eslint-disable no-undef */
 <template>
     <div>
-        <button @click="createGame">创建对局</button>
-        <input type="text" v-model="guid" />
-        <div>{{ guid }}</div>
-        <button @click="joinGame">参与对局</button>
-        <br />
-        <br />
-        <br />
-        <input type="text" v-model="playstep" />
-        <button @click="play">下棋</button>
-        <button @click="quit">退出</button>
-
-        <div id="myBoard" style="width: 400px"></div>
-        <textarea v-model="gData"></textarea>
+        <!-- 顶栏 -->
+        <navbar />
+        <div class="container section">
+            <div class="columns is-desktop">
+                <!-- 左侧边栏 -->
+                <div class="column is-3" v-show="!isPlaying">
+                    <gameNav
+                        class="column"
+                        :gid="gid"
+                        :gametype="gametype"
+                        @JoinGame="joinGame"
+                        @createGame="createGame"
+                        @startPve="startPve"
+                    />
+                </div>
+                <!-- 棋盘 -->
+                <div class="column has-text-centered">
+                    <div
+                        id="myboard"
+                        style="width: 400px;margin: 0 auto;"
+                    ></div>
+                </div>
+                <!-- 右侧栏 -->
+                <div class="column is-3">
+                    <!-- 玩家信息card -->
+                    <div class="card">
+                        step:{{ step }}
+                        <br />
+                        {{
+                            isPlaying
+                                ? vanguard
+                                    ? "白方"
+                                    : "黑方"
+                                : "Waiting for Play"
+                        }}
+                        <br />
+                        <button @click="reset">restart</button>
+                    </div>
+                    <!-- 聊天card -->
+                    <chat />
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -20,53 +51,244 @@
     import * as Chess from "chess.js";
     import Vue from "vue";
     import { create, join } from "@/utils/game";
+    import { removeGreySquares, greySquare } from "@/utils/chess";
     import io from "socket.io-client";
     import store from "@/store/index";
+    import navbar from "@/components/Navbar.vue";
+    import gameNav from "@/components/GameNav.vue";
+    import chat from "@/components/chat.vue";
+
     // import {Chessboard} from "@chrisoakman/chessboardjs/dist/chessboard-1.0.0"
 
     export default Vue.extend({
         name: "Game",
         data: function() {
             return {
-                chess: new Chess(),
-                board: null,
+                gidForJoin: "", //加入时候的gid
+                gid: "", // 创建的gid
+                chess: new Chess(), // 棋局
+                board: null, //棋盘
                 status: null,
                 fen: null,
                 png: null,
                 guid: 0,
-                io: null,
-                gData: null,
-                vanguard: true,
+                io: null, // ws连接对象
+                gData: null, //ascii 版本棋盘
+                vanguard: true, // 先手
                 step: 0, //已经走的步数
                 playstep: "", //下的棋
+                isPlaying: false, //判断是否开局
+                gametype: "pvp",
             };
         },
+        components: {
+            navbar,
+            gameNav,
+            chat,
+        },
+        mounted() {
+            // eslint-disable-next-line no-undef
+            this.board = Chessboard("myboard", {
+                draggable: false,
+                // position: "start",
+            });
+        },
         methods: {
-            async joinGame() {
-                let data;
-                try {
-                    data = await join(this.guid);
-                    this.io = io({
-                        query: {
-                            token: store.getters.getJWT,
-                            guid: this.guid,
-                        },
-                    });
-                    this.initWS(this.io);
+            updateStep() {
+                this.step = this.chess.history().length;
+            },
+            startPve: function() {
+                console.log("开始PVE");
+                this.isPlaying = true;
+                this.chess = new Chess();
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
+                let that = this;
+                let game = this.chess;
+                // eslint-disable-next-line no-undef
+                let board = Chessboard("myboard", {
+                    draggable: true,
+                    onDragStart: (source, piece) => {
+                        if (game.game_over()) return false;
+                        console.log(game.turn(), source, piece);
+                        // only pick up pieces for the side to move
+                        if (game.turn() === "b" || piece.search(/^b/) !== -1) {
+                            return false;
+                        }
+                    },
+                    onDrop: (source, target) => {
+                        removeGreySquares();
+                        let move = game.move({
+                            from: source,
+                            to: target,
+                            promotion: "q", // NOTE: always promote to a queen for example simplicity
+                        });
+                        that.updateStep();
+                        if (move === null) return "snapback";
+                        //人机下棋
+                        setTimeout(() => {
+                            var possibleMoves = game.moves();
+                            if (possibleMoves.length === 0) return;
+                            var randomIdx = Math.floor(
+                                Math.random() * possibleMoves.length
+                            );
+                            // 更新棋盘和数据
+                            game.move(possibleMoves[randomIdx]);
+                            board.position(game.fen());
+                            // 更新步数
+                            that.updateStep();
+                            console.log(game.fen());
+                        }, 1000);
+                    },
+                    onMouseoverSquare: (square) => {
+                        var moves = game.moves({
+                            square: square,
+                            verbose: true,
+                        });
 
-                    this.step = 0;
-                    this.vanguard = false;
-                    this.gData = this.chess.ascii();
-                    console.log(data);
-                } catch (e) {
-                    console.log(e);
-                }
+                        // exit if there are no moves available for this square
+                        if (moves.length === 0) return;
+
+                        // highlight the square they moused over
+                        greySquare(square);
+
+                        // highlight the possible squares for this piece
+                        for (var i = 0; i < moves.length; i++) {
+                            greySquare(moves[i].to);
+                        }
+                    },
+                    onMouseoutSquare: () => {
+                        removeGreySquares();
+                    },
+                    onSnapEnd: () => {
+                        board.position(game.fen());
+                    },
+                });
+                this.board = board;
+                board.start();
+            },
+
+            startPvP(orientation) {
+                this.chess = new Chess();
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
+                let that = this;
+                let game = this.chess;
+                // eslint-disable-next-line no-undef
+                let board = Chessboard("myboard", {
+                    draggable: true,
+                    orientation: orientation,
+
+                    onDragStart: (source, piece) => {
+                        if (game.game_over()) return false;
+                        console.log(game.turn(), source, piece);
+                        // only pick up pieces for the side to move
+                        if (orientation == "white") {
+                            if (
+                                game.turn() === "b" ||
+                                piece.search(/^b/) !== -1
+                            ) {
+                                return false;
+                            }
+                        } else {
+                            if (
+                                game.turn() === "w" ||
+                                piece.search(/^w/) !== -1
+                            ) {
+                                return false;
+                            }
+                        }
+                    },
+                    onDrop: (source, target) => {
+                        removeGreySquares();
+                        if (source === target) {
+                            return;
+                        }
+                        let move = game.move({
+                            from: source,
+                            to: target,
+                            promotion: "q", // NOTE: always promote to a queen for example simplicity
+                        });
+                        that.emitMove(`${source}-${target}`);
+                        that.updateStep();
+                        if (move === null) return "snapback";
+                    },
+                    onMouseoverSquare: (square) => {
+                        if (orientation == "white") {
+                            if (game.turn() === "b") {
+                                return false;
+                            }
+                        } else {
+                            if (game.turn() === "w") {
+                                return false;
+                            }
+                        }
+                        var moves = game.moves({
+                            square: square,
+                            verbose: true,
+                        });
+                        // exit if there are no moves available for this square
+                        if (moves.length === 0) return;
+
+                        // highlight the square they moused over
+                        greySquare(square);
+
+                        // highlight the possible squares for this piece
+                        for (var i = 0; i < moves.length; i++) {
+                            greySquare(moves[i].to);
+                        }
+                    },
+                    onMouseoutSquare: () => {
+                        removeGreySquares();
+                    },
+                    onSnapEnd: () => {
+                        board.position(game.fen());
+                    },
+                });
+                this.board = board;
+                board.start();
+            },
+            // 发送move
+            emitMove(step) {
+                console.log("发送move", {
+                    move: step,
+                    board: this.chess.fen(),
+                    state: this.getState(this.chess),
+                });
+                this.io.emit("step", {
+                    move: step,
+                    board: this.chess.fen(),
+                    state: this.getState(this.chess),
+                });
             },
             // 移动棋子
-            move(step) {
-                this.step++;
-                this.chess.move(step);
-                this.gData = this.chess.ascii();
+            move(data) {
+                let step = data.move;
+                this.chess.move({
+                    from: step.split("-")[0],
+                    to: step.split("-")[1],
+                    promotion: "q", // NOTE: always promote to a queen for example simplicity
+                });
+                this.board.position(data.board);
+                this.updateStep();
+            },
+            // 处理结束emit
+            end(data) {
+                this.board.position(data.board);
+                this.isPlaying = false;
+                // 游戏结束
+                console.log(data.reason, data.state);
+            },
+            // 获取对局状态
+            getState(game) {
+                if (!game.game_over()) {
+                    return 0;
+                } else if (game.in_draw()) {
+                    return 12;
+                } else {
+                    return 10;
+                }
+            },
+            reset() {
+                this.isPlaying = !this.isPlaying;
             },
             play() {
                 this.move(this.playstep);
@@ -84,30 +306,36 @@
             initWS(io) {
                 io.on("connect", () => {
                     console.log(this.io.connected);
+                    io.emit("ready");
                 });
                 // 开始
                 io.on("start", (data) => {
+                    this.isPlaying = true;
+                    this.startPvP(this.vanguard ? "white" : "black");
                     console.log(data);
                 });
                 // 对手下棋
                 io.on("opponent step", (data) => {
-                    this.move(data.move);
+                    this.move(data);
                     console.log(data);
                 });
                 // 游戏结束
                 io.on("end", (data) => {
+                    this.end(data);
                     console.log(data);
                 });
             },
+            // 创建游戏
             async createGame() {
                 let data;
                 try {
                     data = await create();
-                    this.guid = data.guid;
+                    let gid = data.guid;
+                    this.gid = gid;
                     this.io = io({
                         query: {
                             token: store.getters.getJWT,
-                            guid: this.guid,
+                            guid: gid,
                         },
                     });
                     // 初始化websocket
@@ -119,76 +347,28 @@
                 } catch (e) {
                     console.log(e);
                 }
-                // let game = this.chess;
-                // let updateStatus = () => {
-                //     var status = "";
-
-                //     var moveColor = "White";
-                //     if (game.turn() === "b") {
-                //         moveColor = "Black";
-                //     }
-
-                //     // checkmate?
-                //     if (game.in_checkmate()) {
-                //         status =
-                //             "Game over, " + moveColor + " is in checkmate.";
-                //     }
-
-                //     // draw?
-                //     else if (game.in_draw()) {
-                //         status = "Game over, drawn position";
-                //     }
-
-                //     // game still on
-                //     else {
-                //         status = moveColor + " to move";
-
-                //         // check?
-                //         if (game.in_check()) {
-                //             status += ", " + moveColor + " is in check";
-                //         }
-                //     }
-
-                //     this.status = status;
-                //     this.fen = game.fen();
-                //     this.pgn = game.pgn();
-                // };
-
-                // // eslint-disable-next-line no-undef
-                // this.board = new Chessboard("myBoard", {
-                //     draggable: true,
-                //     position: "start",
-                //     onDragStart: (source, piece) => {
-                //         // do not pick up pieces if the game is over
-                //         if (game.game_over()) return false;
-
-                //         // or if it's not that side's turn
-                //         if (
-                //             (game.turn() === "w" &&
-                //                 piece.search(/^b/) !== -1) ||
-                //             (game.turn() === "b" && piece.search(/^w/) !== -1)
-                //         ) {
-                //             return false;
-                //         }
-                //     },
-                //     onDrop: (source, target) => {
-                //         var move = game.move({
-                //             from: source,
-                //             to: target,
-                //             promotion: "q", // NOTE: always promote to a queen for example simplicity
-                //         });
-
-                //         // illegal move
-                //         if (move === null) return "snapback";
-
-                //         updateStatus();
-                //     },
-                // });
-                // create().then(data=>{
-                //     console.log(data);
-                // }).catch(err=>{
-                //     console.log(err);
-                // })
+            },
+            // 加入游戏
+            async joinGame(gidForJoin) {
+                console.log(gidForJoin);
+                let data;
+                try {
+                    let gid = gidForJoin;
+                    data = await join(gid);
+                    this.io = io({
+                        query: {
+                            token: store.getters.getJWT,
+                            guid: gid,
+                        },
+                    });
+                    this.initWS(this.io);
+                    this.step = 0;
+                    this.vanguard = false;
+                    this.gData = this.chess.ascii();
+                    console.log(data);
+                } catch (e) {
+                    console.log(e);
+                }
             },
         },
     });

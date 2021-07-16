@@ -20,6 +20,7 @@ export function join(gid: string) {
     return ajax
         .post("/joinGame", {
             guid: gid,
+            bw: "b",
         })
         .then((data) => {
             switch (data.data.state) {

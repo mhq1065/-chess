@@ -21,6 +21,9 @@
         mounted() {
             let data = store.getters.getUser;
             [this.username, this.pwd] = [data.username, data.pwd];
+            if (this.username != "") {
+                this.remember = true;
+            }
         },
         methods: {
             showModal: function(msg: string) {
