@@ -59,7 +59,7 @@
                 <input
                     class="input is-success"
                     type="text"
-                    placeholder="User Name"
+                    placeholder="用户名"
                     v-model="username"
                 />
                 <span class="icon is-small is-left">
@@ -73,7 +73,7 @@
                 <input
                     class="input"
                     type="password"
-                    placeholder="Password"
+                    placeholder="密码"
                     v-model="pwd"
                 />
                 <span class="icon is-small is-left">
@@ -88,6 +88,7 @@
                     class="input"
                     :class="{ 'is-danger': !isValid }"
                     type="password"
+                    placeholder="确认密码"
                     v-model="confirmPwd"
                 />
                 <span class="icon is-small is-left">

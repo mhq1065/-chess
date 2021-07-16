@@ -1,5 +1,7 @@
 <script>
     import Vue from "vue";
+    import * as Chess from "chess.js";
+
     import navbar from "@/components/Navbar.vue";
     import {
         getHistoryStat,
@@ -12,11 +14,17 @@
         data() {
             return {
                 user: {},
+                chess: null,
+                board: null,
                 tab: "All",
                 getHistoryStat: {},
                 getHistorySummaries: [],
                 isShowController: true,
-                StepRecords: {},
+                StepRecords: {}, // 当前对局走棋记录
+                isShowing: false, // 是否在进行记录复盘
+                step: 0, // 记录当前步数
+                index: 0, // 记录序号
+                orientation: "white",
             };
         },
         components: {
@@ -69,6 +77,7 @@
                 this.getHistorySummaries = historyR.summaries;
                 console.log("getHistoryStat:", this.getHistoryStat);
                 console.log("getHistorySummaries", this.getHistorySummaries);
+                this.initChessBoard();
             } catch (e) {
                 console.log("注册失败", e);
             }
@@ -83,12 +92,62 @@
 
                 return `${month}/${date} ${hour}:${m}`;
             },
-            async getRecords(guid) {
+            async getRecords(guid, index) {
                 try {
-                    this.StepRecords = await getStepRecords(guid);
+                    // 获取对局信息并处理数据
+                    let step = await getStepRecords(guid);
+                    this.StepRecords = step.steps
+                        .split("\n")
+                        .filter((i) => i !== "");
+                    // 初始化控制器
+                    this.isShowing = true;
+                    this.step = 0;
+                    this.index = index;
                 } catch (e) {
                     console.log(e);
                 }
+            },
+            initChessBoard() {
+                this.chess = new Chess();
+                // eslint-disable-next-line no-undef
+                let board = Chessboard("myboard", {
+                    draggable: false,
+                });
+                this.board = board;
+                board.start();
+            },
+            getboard(stepNum) {
+                this.board.move(...this.StepRecords.slice(0, stepNum));
+            },
+            nextStep() {
+                console.log("next Step");
+
+                if (this.step >= this.StepRecords.length) {
+                    this.step = this.StepRecords.length;
+                    return;
+                }
+                this.step++;
+                this.getboard(this.step);
+            },
+            beforeStep() {
+                console.log("next Step");
+                if (this.step <= 0) {
+                    this.step = 0;
+                    return;
+                }
+                this.step--;
+                this.board.start();
+                this.getboard(this.step);
+            },
+            reset() {
+                console.log("reset");
+                this.board.start();
+                this.step = 0;
+            },
+            reverse() {
+                this.orientation =
+                    this.orientation == "white" ? "black" : "white";
+                this.board.orientation(this.orientation);
             },
         },
     });
@@ -150,7 +209,7 @@
                                 class="panel-block"
                                 v-for="(game, index) in getHistorySummaries"
                                 :key="index"
-                                @click="getRecords(game.guid)"
+                                @click="getRecords(game.guid, index)"
                             >
                                 <nav class="level">
                                     <div class="level-left">
@@ -160,6 +219,7 @@
                                                 aria-hidden="true"
                                             ></i>
                                         </span>
+                                        {{ game.guid }}
                                         {{ game.b_username }} vs
                                         {{ game.w_username }}
                                     </div>
@@ -245,7 +305,10 @@
                 </div>
                 <!-- chessboard -->
                 <div class="column">
-                    First column
+                    <div
+                        id="myboard"
+                        style="width: 400px;margin: 0 auto;"
+                    ></div>
                 </div>
                 <!-- controller -->
                 <div class="column is-3">
@@ -271,18 +334,35 @@
                         </header>
                         <div class="card-content" v-show="isShowController">
                             <div class="content">
-                                Lorem ipsum leo risus, porta ac consectetur ac,
-                                vestibulum at eros. Donec id elit non mi porta
-                                gravida at eget metus. Cum sociis natoque
-                                penatibus et magnis dis parturient montes,
-                                nascetur ridiculus mus. Cras mattis consectetur
-                                purus sit amet fermentum.
+                                <div v-if="isShowing">
+                                    {{ getHistorySummaries[index].b_username }}
+                                    vs
+                                    {{ getHistorySummaries[index].w_username }}
+                                    {{ step }}/{{ StepRecords.length }}
+                                    <button @click="reverse">
+                                        reverse Orientation
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <footer class="card-footer" v-show="isShowController">
-                            <a href="#" class="card-footer-item">Save</a>
-                            <a href="#" class="card-footer-item">Edit</a>
-                            <a href="#" class="card-footer-item">Delete</a>
+                            <a
+                                href="#"
+                                class="card-footer-item"
+                                @click="beforeStep"
+                            >
+                                上一步
+                            </a>
+                            <a href="#" class="card-footer-item" @click="reset">
+                                重置
+                            </a>
+                            <a
+                                href="#"
+                                class="card-footer-item"
+                                @click="nextStep"
+                            >
+                                下一步
+                            </a>
                         </footer>
                     </div>
                 </div>

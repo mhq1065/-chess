@@ -3,15 +3,17 @@
     import { login } from "@/utils/user";
     import store from "@/store/index";
     import modal from "./Modal.vue";
+    import popup from "@/components/popup.vue"; // @ is an alias to /src
 
     export default Vue.extend({
         name: "Login",
         components: {
             modal,
+            popup,
         },
         data: function() {
             return {
-                username: "mhq1",
+                username: "",
                 pwd: "",
                 remember: false,
                 isShowModal: false,
@@ -29,6 +31,9 @@
             showModal: function(msg: string) {
                 this.modalMsg = msg;
                 this.isShowModal = true;
+                setTimeout(() => {
+                    this.isShowModal = false;
+                }, 1000);
             },
             Login: function() {
                 if (this.username == "") {
@@ -94,18 +99,19 @@
             <div class="control">
                 <label class="checkbox">
                     <input type="checkbox" v-model="remember" />
-                    Remember me
+                    记住我
                 </label>
             </div>
         </div>
         <!-- 登录 -->
         <div class="field is-grouped">
             <div class="control">
-                <button class="button is-link" @click="Login">Login</button>
+                <button class="button is-link" @click="Login">登录</button>
             </div>
         </div>
-        <modal :isShow="isShowModal" @closeModal="isShowModal = false">
+        <popup :isShow="isShowModal">
             {{ modalMsg }}
-        </modal>
+        </popup>
+        <modal> </modal>
     </div>
 </template>

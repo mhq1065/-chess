@@ -84,6 +84,19 @@
                         </div>
                     </ul>
                 </li>
+                <li>
+                    <a @click="showRandomPvp">匹配游戏</a>
+                    <ul v-show="isRandomPvp">
+                        <div class="content">
+                            <button
+                                class="button is-small is-light"
+                                @click="startRandomPvp"
+                            >
+                                开始游戏
+                            </button>
+                        </div>
+                    </ul>
+                </li>
             </ul>
         </aside>
     </div>
@@ -102,6 +115,7 @@
                 isShowCreate: false,
                 isShowJoin: false,
                 isPve: false,
+                isRandomPvp: false,
             };
         },
         methods: {
@@ -113,6 +127,9 @@
             },
             showPve: function() {
                 this.isPve = !this.isPve;
+            },
+            showRandomPvp: function() {
+                this.isRandomPvp = !this.isRandomPvp;
             },
             copyCreate: function() {
                 let d = document.querySelector("#createInput");
@@ -131,6 +148,10 @@
             startPve: function() {
                 console.log("GameNav", "Start PVE");
                 this.$emit("startPve");
+            },
+            startRandomPvp: function() {
+                console.log("GameNav", "Start RandomPvp");
+                this.$emit("startRandomPvp");
             },
         },
     });

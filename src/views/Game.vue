@@ -14,6 +14,7 @@
                         @JoinGame="joinGame"
                         @createGame="createGame"
                         @startPve="startPve"
+                        @startRandomPvp="startRandomPvp"
                     />
                 </div>
                 <!-- 棋盘 -->
@@ -26,7 +27,7 @@
                 <!-- 右侧栏 -->
                 <div class="column is-3">
                     <!-- 玩家信息card -->
-                    <div class="card">
+                    <div class="card field">
                         step:{{ step }}
                         <br />
                         {{
@@ -40,7 +41,7 @@
                         <button @click="reset">restart</button>
                     </div>
                     <!-- 聊天card -->
-                    <chat />
+                    <chat :msgList="msgList" @sendMsg="sendMsg" />
                 </div>
             </div>
         </div>
@@ -66,12 +67,12 @@
             return {
                 gidForJoin: "", //加入时候的gid
                 gid: "", // 创建的gid
+                guid: "", //随机匹配的gid
                 chess: new Chess(), // 棋局
                 board: null, //棋盘
                 status: null,
                 fen: null,
                 png: null,
-                guid: 0,
                 io: null, // ws连接对象
                 gData: null, //ascii 版本棋盘
                 vanguard: true, // 先手
@@ -79,6 +80,8 @@
                 playstep: "", //下的棋
                 isPlaying: false, //判断是否开局
                 gametype: "pvp",
+                msgList: [], // 消息列表
+                pvpInfo: {}, //对局双方信息
             };
         },
         components: {
@@ -312,12 +315,21 @@
                 io.on("start", (data) => {
                     this.isPlaying = true;
                     this.startPvP(this.vanguard ? "white" : "black");
+                    this.pvpInfo = data;
                     console.log(data);
                 });
                 // 对手下棋
                 io.on("opponent step", (data) => {
                     this.move(data);
                     console.log(data);
+                });
+                io.on("opponent message", (data) => {
+                    this.msgList.push({
+                        username: this.vanguard
+                            ? this.pvpInfo.b_username
+                            : this.pvpInfo.w_username,
+                        msg: data.message,
+                    });
                 });
                 // 游戏结束
                 io.on("end", (data) => {
@@ -369,6 +381,32 @@
                 } catch (e) {
                     console.log(e);
                 }
+            },
+            startRandomPvp() {
+                console.log("startRandoamPvp");
+                let socket = io({
+                    path: "match",
+                    query: {
+                        token: store.getters.getJWT,
+                    },
+                });
+                socket.on("match success", (data) => {
+                    this.guid = data.guid;
+                    this.vanguard = data.bw === "w" ? true : false;
+                });
+            },
+            sendMsg(data) {
+                console.log("send:", data);
+                // messege
+                this.io.emit("message", {
+                    message: data,
+                });
+                this.msgList.push({
+                    username: this.vanguard
+                        ? this.pvpInfo.w_username
+                        : this.pvpInfo.b_username,
+                    msg: data,
+                });
             },
         },
     });
