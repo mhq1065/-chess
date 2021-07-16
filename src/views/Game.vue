@@ -52,7 +52,12 @@
     import * as Chess from "chess.js";
     import Vue from "vue";
     import { create, join } from "@/utils/game";
-    import { removeGreySquares, greySquare } from "@/utils/chess";
+    import {
+        removeGreySquares,
+        greySquare,
+        getBestMove,
+        evaluateBoard,
+    } from "@/utils/chess";
     import io from "socket.io-client";
     import store from "@/store/index";
     import navbar from "@/components/Navbar.vue";
@@ -107,6 +112,8 @@
                 // eslint-disable-next-line @typescript-eslint/no-this-alias
                 let that = this;
                 let game = this.chess;
+                let globalSum = 0; // 评估函数
+                let searchDepth = 2; // 搜索深度
                 // eslint-disable-next-line no-undef
                 let board = Chessboard("myboard", {
                     draggable: true,
@@ -129,17 +136,26 @@
                         if (move === null) return "snapback";
                         //人机下棋
                         setTimeout(() => {
-                            var possibleMoves = game.moves();
-                            if (possibleMoves.length === 0) return;
-                            var randomIdx = Math.floor(
-                                Math.random() * possibleMoves.length
-                            );
-                            // 更新棋盘和数据
-                            game.move(possibleMoves[randomIdx]);
+                            var move = getBestMove(
+                                game,
+                                "b",
+                                globalSum,
+                                searchDepth
+                            )[0];
+                            globalSum = evaluateBoard(move, globalSum, "b");
+                            game.move(move);
                             board.position(game.fen());
-                            // 更新步数
-                            that.updateStep();
-                            console.log(game.fen());
+                            // var possibleMoves = game.moves();
+                            // if (possibleMoves.length === 0) return;
+                            // var randomIdx = Math.floor(
+                            //     Math.random() * possibleMoves.length
+                            // );
+                            // // 更新棋盘和数据
+                            // game.move(possibleMoves[randomIdx]);
+                            // board.position(game.fen());
+                            // // 更新步数
+                            // that.updateStep();
+                            // console.log(game.fen());
                         }, 1000);
                     },
                     onMouseoverSquare: (square) => {
