@@ -16,11 +16,11 @@ export function create() {
     });
 }
 
-export function join(gid: string) {
+export function join(gid: string, bw = "b") {
     return ajax
         .post("/joinGame", {
             guid: gid,
-            bw: "b",
+            bw: bw,
         })
         .then((data) => {
             switch (data.data.state) {

@@ -108,6 +108,6 @@
                 tab: "login",
                 isBegining: false,
             };
-        },
+        }
     });
 </script>

@@ -14,6 +14,11 @@ module.exports = {
                 ws: true,
                 changeOrigin: true
             },
+            '/match': {
+                target: 'http://localhost:3000/match',
+                ws: true,
+                changeOrigin: true
+            },
         }
     }
 }

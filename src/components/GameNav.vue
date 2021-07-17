@@ -107,7 +107,6 @@
         name: "GameNav",
         props: {
             gid: String,
-            gametype: String,
         },
         data() {
             return {

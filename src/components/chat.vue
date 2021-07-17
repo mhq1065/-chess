@@ -2,17 +2,19 @@
     <div class="field">
         <article class="media">
             <div class="media-content">
-                <div
-                    class="content"
-                    v-for="(item, index) in msgList"
-                    :key="index"
-                >
-                    <p>
-                        <strong>{{ item.username }}</strong>
-                        <br />
-                        {{ item.msg }}
-                        <br />
-                    </p>
+                <div class="field card" style="height:200px;overflow-y:scroll">
+                    <div
+                        class="card-content"
+                        v-for="(item, index) in msgList"
+                        :key="index"
+                    >
+                        <p>
+                            <strong>{{ item.username }}</strong>
+                            <br />
+                            {{ item.msg }}
+                            <br />
+                        </p>
+                    </div>
                 </div>
                 <div class="field">
                     <div class="control">

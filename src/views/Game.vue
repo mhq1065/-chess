@@ -1,45 +1,115 @@
+<style lang="scss">
+    $card-radius: 100px;
+    @keyframes slide_left {
+        0% {
+            transform: rotate(0);
+        }
+        100% {
+            transform: translate(-100px);
+        }
+    }
+    .game-container {
+        position: relative;
+        left: 0;
+        transition: 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+    }
+    .game-container-on {
+        left: -400px;
+    }
+    .leftgame-container {
+        position: relative;
+        left: 200px;
+    }
+    .leftgame-container-on {
+        left: 0;
+    }
+    .section {
+        padding: 2rem 3rem;
+    }
+</style>
+
 /* eslint-disable no-undef */
 <template>
     <div>
         <!-- 顶栏 -->
         <navbar />
-        <div class="container section">
+        <!-- 加载等待动画 -->
+        <loading
+            msg="正在匹配中..."
+            v-show="isWaiting"
+            @closeWaiting="closeWaiting"
+        />
+        <div
+            class="container section game-container"
+            :class="{ 'game-container-on': isPlaying }"
+        >
             <div class="columns is-desktop">
                 <!-- 左侧边栏 -->
-                <div class="column is-3" v-show="!isPlaying">
+                <div class="column is-3">
                     <gameNav
                         class="column"
                         :gid="gid"
-                        :gametype="gametype"
                         @JoinGame="joinGame"
                         @createGame="createGame"
                         @startPve="startPve"
                         @startRandomPvp="startRandomPvp"
                     />
                 </div>
+                <div class="column is-1"></div>
                 <!-- 棋盘 -->
-                <div class="column has-text-centered">
+                <div class="column has-text-centered is-7">
                     <div
                         id="myboard"
-                        style="width: 400px;margin: 0 auto;"
+                        style="width: 500px;margin: 0 auto;"
                     ></div>
                 </div>
                 <!-- 右侧栏 -->
-                <div class="column is-3">
+                <div
+                    class="column is-3 leftgame-container"
+                    :class="{ 'leftgame-container-on': isPlaying }"
+                >
                     <!-- 玩家信息card -->
                     <div class="card field">
-                        step:{{ step }}
-                        <br />
-                        {{
-                            isPlaying
-                                ? vanguard
-                                    ? "白方"
-                                    : "黑方"
-                                : "Waiting for Play"
-                        }}
-                        <br />
-                        <button @click="reset">restart</button>
+                        <header class="card-header">
+                            <p class="card-header-title">
+                                游戏信息
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <nav class="level">
+                                <p class="level-item has-text-centered">
+                                    {{ gameInfo.w_username }}
+                                </p>
+                                <p class="level-item has-text-centered">
+                                    VS
+                                </p>
+                                <p class="level-item has-text-centered">
+                                    {{ gameInfo.b_username }}
+                                </p>
+                            </nav>
+                            <div class="has-text-centered">step:{{ step }}</div>
+                            <div class="has-text-centered">
+                                {{
+                                    isPlaying
+                                        ? vanguard
+                                            ? "白方"
+                                            : "黑方"
+                                        : "Waiting for Play"
+                                }}
+                            </div>
+                            <br />
+                            <div class="has-text-centered">
+                                <button class="button is-danger" @click="reset">
+                                    投降
+                                </button>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                <div
+                    class="column is-3 leftgame-container"
+                    :class="{ 'leftgame-container-on': isPlaying }"
+                >
                     <!-- 聊天card -->
                     <chat :msgList="msgList" @sendMsg="sendMsg" />
                 </div>
@@ -63,6 +133,8 @@
     import navbar from "@/components/Navbar.vue";
     import gameNav from "@/components/GameNav.vue";
     import chat from "@/components/chat.vue";
+    import "animate.css";
+    import loading from "@/components/loading.vue";
 
     // import {Chessboard} from "@chrisoakman/chessboardjs/dist/chessboard-1.0.0"
 
@@ -86,13 +158,16 @@
                 isPlaying: false, //判断是否开局
                 gametype: "pvp",
                 msgList: [], // 消息列表
-                pvpInfo: {}, //对局双方信息
+                gameInfo: {}, //对局双方信息
+                isWaiting: false,
+                waitingIO: null,
             };
         },
         components: {
             navbar,
             gameNav,
             chat,
+            loading,
         },
         mounted() {
             // eslint-disable-next-line no-undef
@@ -107,7 +182,12 @@
             },
             startPve: function() {
                 console.log("开始PVE");
+                this.gametype = "pve";
                 this.isPlaying = true;
+                this.gameInfo = {
+                    b_username: "computer",
+                    w_username: store.getters.getUser.username || "",
+                };
                 this.chess = new Chess();
                 // eslint-disable-next-line @typescript-eslint/no-this-alias
                 let that = this;
@@ -145,17 +225,6 @@
                             globalSum = evaluateBoard(move, globalSum, "b");
                             game.move(move);
                             board.position(game.fen());
-                            // var possibleMoves = game.moves();
-                            // if (possibleMoves.length === 0) return;
-                            // var randomIdx = Math.floor(
-                            //     Math.random() * possibleMoves.length
-                            // );
-                            // // 更新棋盘和数据
-                            // game.move(possibleMoves[randomIdx]);
-                            // board.position(game.fen());
-                            // // 更新步数
-                            // that.updateStep();
-                            // console.log(game.fen());
                         }, 1000);
                     },
                     onMouseoverSquare: (square) => {
@@ -195,7 +264,6 @@
                 let board = Chessboard("myboard", {
                     draggable: true,
                     orientation: orientation,
-
                     onDragStart: (source, piece) => {
                         if (game.game_over()) return false;
                         console.log(game.turn(), source, piece);
@@ -308,6 +376,10 @@
             },
             reset() {
                 this.isPlaying = !this.isPlaying;
+                this.board.clear();
+                if (this.gametype === "pvp") {
+                    this.io.close();
+                }
             },
             play() {
                 this.move(this.playstep);
@@ -322,6 +394,7 @@
                 console.log("手动结束Game");
                 this.io.emit("quit");
             },
+            // 初始化websocket
             initWS(io) {
                 io.on("connect", () => {
                     console.log(this.io.connected);
@@ -331,7 +404,7 @@
                 io.on("start", (data) => {
                     this.isPlaying = true;
                     this.startPvP(this.vanguard ? "white" : "black");
-                    this.pvpInfo = data;
+                    this.gameInfo = data;
                     console.log(data);
                 });
                 // 对手下棋
@@ -342,8 +415,8 @@
                 io.on("opponent message", (data) => {
                     this.msgList.push({
                         username: this.vanguard
-                            ? this.pvpInfo.b_username
-                            : this.pvpInfo.w_username,
+                            ? this.gameInfo.b_username
+                            : this.gameInfo.w_username,
                         msg: data.message,
                     });
                 });
@@ -355,6 +428,7 @@
             },
             // 创建游戏
             async createGame() {
+                this.gametype = "pvp";
                 let data;
                 try {
                     data = await create();
@@ -379,6 +453,7 @@
             // 加入游戏
             async joinGame(gidForJoin) {
                 console.log(gidForJoin);
+                this.gametype = "pvp";
                 let data;
                 try {
                     let gid = gidForJoin;
@@ -398,18 +473,39 @@
                     console.log(e);
                 }
             },
+            // 匹配模式（随机？
             startRandomPvp() {
                 console.log("startRandoamPvp");
+                this.gametype = "pvp";
+                this.isWaiting = true;
                 let socket = io({
-                    path: "match",
+                    path: "/match",
                     query: {
                         token: store.getters.getJWT,
                     },
+                    reconnect: false,
+                    "auto connect": false,
                 });
-                socket.on("match success", (data) => {
+                socket.on("match success", async (data) => {
                     this.guid = data.guid;
                     this.vanguard = data.bw === "w" ? true : false;
+                    try {
+                        let r = await join(data.guid, data.bw);
+                        console.log(r);
+                        this.io = io({
+                            query: {
+                                token: store.getters.getJWT,
+                                guid: data.guid,
+                            },
+                        });
+                        this.initWS(this.io);
+                        this.step = 0;
+                    } catch (e) {
+                        console.log(e);
+                    }
                 });
+
+                this.waitingIO = socket;
             },
             sendMsg(data) {
                 console.log("send:", data);
@@ -419,10 +515,15 @@
                 });
                 this.msgList.push({
                     username: this.vanguard
-                        ? this.pvpInfo.w_username
-                        : this.pvpInfo.b_username,
+                        ? this.gameInfo.w_username
+                        : this.gameInfo.b_username,
                     msg: data,
                 });
+            },
+            // 停止匹配等待
+            closeWaiting() {
+                this.isWaiting = false;
+                this.waitingIO.close();
             },
         },
     });

@@ -4,7 +4,7 @@ import store from "@/store/index";
 
 const service = axios.create({
     // baseURL: process.env.BASE_API, // api 的 base_url
-    baseURL: "/api",
+    baseURL: process.env.NODE_ENV === "development" ? "/api" : "/",
     responseType: "json",
     withCredentials: true,
     headers: {
