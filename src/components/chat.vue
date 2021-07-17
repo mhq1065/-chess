@@ -2,23 +2,34 @@
     <div class="field">
         <article class="media">
             <div class="media-content">
-                <div class="field card" style="height:200px;overflow-y:scroll">
+                <div class="field card">
+                    <header class="card-header">
+                        <p class="card-header-title">
+                            聊天
+                        </p>
+                    </header>
+
                     <div
                         class="card-content"
-                        v-for="(item, index) in msgList"
-                        :key="index"
+                        style="overflow-y:auto;height:300px"
                     >
-                        <p>
-                            <strong>{{ item.username }}</strong>
-                            <br />
-                            {{ item.msg }}
-                            <br />
-                        </p>
+                        <div
+                            class="card-content"
+                            v-for="(item, index) in msgList"
+                            :key="index"
+                        >
+                            <p>
+                                <strong>{{ item.username }}</strong>
+                                <br />
+                                {{ item.msg }}
+                                <br />
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <textarea class="textarea" v-model="msg"></textarea>
+                        <input class="input is-info" v-model="msg" />
                     </div>
                 </div>
                 <div class="field">
