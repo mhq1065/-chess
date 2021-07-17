@@ -2,6 +2,7 @@
     import Vue from "vue";
     import { register } from "@/utils/user";
     import modal from "./Modal.vue";
+    import popup from "@/components/popup.vue"; // @ is an alias to /src
 
     export default Vue.extend({
         name: "Register",
@@ -10,6 +11,7 @@
                 username: "",
                 pwd: "",
                 confirmPwd: "",
+                isShowPopup: false,
                 isShowModal: false,
                 modalMsg: "",
             };
@@ -20,30 +22,38 @@
             },
         },
         components: {
+            popup,
             modal,
         },
         methods: {
-            showModal: function(msg: string) {
+            showPopup: function(msg: string) {
                 this.modalMsg = msg;
+                this.isShowPopup = true;
+                setTimeout(() => {
+                    this.isShowPopup = false;
+                }, 1000);
+            },
+            showModal: function() {
                 this.isShowModal = true;
             },
             reg: async function() {
                 if (this.username == "") {
-                    this.showModal("用户名不能为空");
+                    this.showPopup("用户名不能为空");
                     return;
                 } else if (this.pwd == "") {
-                    this.showModal("密码不能为空");
+                    this.showPopup("密码不能为空");
                     return;
                 } else if (this.pwd !== this.confirmPwd) {
-                    this.showModal("密码不一致");
+                    this.showPopup("密码不一致");
                     return;
                 }
 
                 try {
                     let data = await register(this.username, this.pwd);
+                    this.showModal();
                     console.log(data);
                 } catch (e) {
-                    this.showModal(e);
+                    this.showPopup(e);
                     console.log("注册失败", e);
                 }
             },
@@ -113,7 +123,10 @@
             </div>
         </div>
         <modal :isShow="isShowModal" @closeModal="isShowModal = false">
-            {{ modalMsg }}
+            注册成功，请进行登录操作
         </modal>
+        <popup :isShow="isShowPopup">
+            {{ modalMsg }}
+        </popup>
     </div>
 </template>

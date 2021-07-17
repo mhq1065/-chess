@@ -2,13 +2,11 @@
     import Vue from "vue";
     import { login } from "@/utils/user";
     import store from "@/store/index";
-    import modal from "./Modal.vue";
     import popup from "@/components/popup.vue"; // @ is an alias to /src
 
     export default Vue.extend({
         name: "Login",
         components: {
-            modal,
             popup,
         },
         data: function() {
@@ -112,6 +110,5 @@
         <popup :isShow="isShowModal">
             {{ modalMsg }}
         </popup>
-        <modal> </modal>
     </div>
 </template>

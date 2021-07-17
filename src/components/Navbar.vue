@@ -6,6 +6,14 @@
             aria-label="main navigation"
         >
             <div class="navbar-brand">
+                <a class="navbar-item" href="/">
+                    <img
+                        src="../assets/logo.png"
+                        width="28"
+                        height="28"
+                        alt="logo"
+                    />
+                </a>
                 <a class="navbar-item is-spaced">
                     Chess
                 </a>
