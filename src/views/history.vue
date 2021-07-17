@@ -9,6 +9,8 @@
         getStepRecords,
     } from "@/utils/history";
     import store from "@/store/index";
+    import popup from "@/components/popup.vue"; // @ is an alias to /src
+
     export default Vue.extend({
         name: "History",
         data() {
@@ -25,10 +27,14 @@
                 step: 0, // 记录当前步数
                 index: 0, // 记录序号
                 orientation: "white",
+                //pop
+                isShowPopup: false,
+                popupMsg: "",
             };
         },
         components: {
             navbar,
+            popup,
         },
         computed: {
             winHistory: function() {
@@ -92,7 +98,7 @@
 
                 return `${month}/${date} ${hour}:${m}`;
             },
-            async getRecords(guid, index) {
+            async getRecords(guid) {
                 try {
                     // 获取对局信息并处理数据
                     let step = await getStepRecords(guid);
@@ -102,8 +108,17 @@
                     // 初始化控制器
                     this.isShowing = true;
                     this.step = 0;
-                    this.index = index;
+
+                    this.index = this.getHistorySummaries.findIndex(
+                        (item) => item.guid === guid
+                    );
                 } catch (e) {
+                    console.log("获取对局记录失败");
+                    this.popupMsg = "获取对局记录失败";
+                    this.isShowPopup = true;
+                    setTimeout(() => {
+                        this.isShowPopup = false;
+                    }, 1000);
                     console.log(e);
                 }
             },
@@ -155,6 +170,9 @@
 <template>
     <div>
         <navbar />
+        <popup :isShow="isShowPopup">
+            {{ popupMsg }}
+        </popup>
         <div class="container section">
             <div class="columns">
                 <!-- search -->
@@ -184,23 +202,25 @@
                                 @click="tab = 'All'"
                                 :class="{ 'is-active': tab === 'All' }"
                             >
-                                All
+                                所有对局
                             </a>
                             <a
                                 @click="tab = 'Win'"
                                 :class="{ 'is-active': tab === 'Win' }"
                             >
-                                Win
+                                胜利对局
                             </a>
                             <a
                                 @click="tab = 'Lose'"
                                 :class="{ 'is-active': tab === 'Lose' }"
-                                >Lose
+                            >
+                                失败对局
                             </a>
                             <a
                                 @click="tab = 'Draw'"
                                 :class="{ 'is-active': tab === 'Draw' }"
-                                >Draw
+                            >
+                                平局
                             </a>
                         </p>
                         <!-- 全部对局 -->
@@ -209,7 +229,7 @@
                                 class="panel-block"
                                 v-for="(game, index) in getHistorySummaries"
                                 :key="index"
-                                @click="getRecords(game.guid, index)"
+                                @click="getRecords(game.guid)"
                             >
                                 <nav class="level">
                                     <div class="level-left">
@@ -219,7 +239,6 @@
                                                 aria-hidden="true"
                                             ></i>
                                         </span>
-                                        {{ game.guid }}
                                         {{ game.b_username }} vs
                                         {{ game.w_username }}
                                     </div>
@@ -333,14 +352,38 @@
                             </button>
                         </header>
                         <div class="card-content" v-show="isShowController">
-                            <div class="content">
-                                <div v-if="isShowing">
-                                    {{ getHistorySummaries[index].b_username }}
-                                    vs
-                                    {{ getHistorySummaries[index].w_username }}
-                                    {{ step }}/{{ StepRecords.length }}
-                                    <button @click="reverse">
-                                        reverse Orientation
+                            <div v-if="isShowing">
+                                <nav class="level">
+                                    <p class="level-item has-text-centered">
+                                        {{
+                                            getHistorySummaries[index]
+                                                .b_username
+                                        }}
+                                    </p>
+                                    <p class="level-item has-text-centered">
+                                        VS
+                                    </p>
+                                    <p class="level-item has-text-centered">
+                                        {{
+                                            getHistorySummaries[index]
+                                                .w_username
+                                        }}
+                                    </p>
+                                </nav>
+                                <br />
+                                <div class="field has-text-centered">
+                                    当前步数/总步数：{{ step }}/{{
+                                        StepRecords.length
+                                    }}
+                                </div>
+                                <br />
+                                <div class="field has-text-centered">
+                                    <button
+                                        class="button"
+                                        @click="reverse"
+                                        style="background-color:#46aad5;color:white"
+                                    >
+                                        翻转棋盘
                                     </button>
                                 </div>
                             </div>

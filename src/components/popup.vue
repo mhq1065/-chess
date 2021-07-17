@@ -15,10 +15,8 @@
 </template>
 <style>
     .popup.isShow_popup {
-        /* display: inherit; */
         visibility: visible;
         opacity: 1;
-        /* transform: translateY(0); */
     }
     .popup {
         /* display: none; */
@@ -27,9 +25,9 @@
         left: 50%; /* 定位父级的50% */
         top: 50%;
         transform: translate(-50%, -50%); /*自己的50% */
-        visibility: hidden;
         opacity: 0;
         transition: 0.3s;
+        z-index: 1000;
     }
     .popup-container {
         background-color: rgb(254, 240, 240);
