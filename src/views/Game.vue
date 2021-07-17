@@ -87,7 +87,9 @@
                                     {{ gameInfo.b_username }}
                                 </p>
                             </nav>
-                            <div class="has-text-centered">step:{{ step }}</div>
+                            <div class="has-text-centered">
+                                已经走的步数:{{ step }}
+                            </div>
                             <div class="has-text-centered">
                                 {{
                                     isPlaying
@@ -184,6 +186,7 @@
                 console.log("开始PVE");
                 this.gametype = "pve";
                 this.isPlaying = true;
+                this.step = 0;
                 this.gameInfo = {
                     b_username: "computer",
                     w_username: store.getters.getUser.username || "",
@@ -225,6 +228,7 @@
                             globalSum = evaluateBoard(move, globalSum, "b");
                             game.move(move);
                             board.position(game.fen());
+                            that.updateStep();
                         }, 1000);
                     },
                     onMouseoverSquare: (square) => {
@@ -487,6 +491,7 @@
                     "auto connect": false,
                 });
                 socket.on("match success", async (data) => {
+                    this.isWaiting = false;
                     this.guid = data.guid;
                     this.vanguard = data.bw === "w" ? true : false;
                     try {
