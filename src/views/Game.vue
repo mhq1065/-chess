@@ -39,6 +39,9 @@
             v-show="isWaiting"
             @closeWaiting="closeWaiting"
         />
+        <popup :isShow="isShowPopup">
+            游戏结束
+        </popup>
         <div
             class="container section game-container"
             :class="{ 'game-container-on': isPlaying }"
@@ -137,6 +140,7 @@
     import chat from "@/components/chat.vue";
     import "animate.css";
     import loading from "@/components/loading.vue";
+    import popup from "@/components/popup.vue"; // @ is an alias to /src
 
     // import {Chessboard} from "@chrisoakman/chessboardjs/dist/chessboard-1.0.0"
 
@@ -163,6 +167,7 @@
                 gameInfo: {}, //对局双方信息
                 isWaiting: false,
                 waitingIO: null,
+                isShowPopup: false,
             };
         },
         components: {
@@ -170,6 +175,7 @@
             gameNav,
             chat,
             loading,
+            popup,
         },
         mounted() {
             // eslint-disable-next-line no-undef
@@ -298,6 +304,7 @@
                             to: target,
                             promotion: "q", // NOTE: always promote to a queen for example simplicity
                         });
+                        // 判断是否为有效步
                         if (move === null) return "snapback";
                         that.emitMove(`${source}-${target}`);
                         that.updateStep();
@@ -426,6 +433,11 @@
                 });
                 // 游戏结束
                 io.on("end", (data) => {
+                    this.isShowPopup = true;
+                    setTimeout(() => {
+                        this.isShowPopup = false;
+                    }, 2000);
+                    this.board.clear();
                     this.end(data);
                     console.log(data);
                 });

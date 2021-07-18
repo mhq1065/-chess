@@ -34,6 +34,7 @@
                             class=""
                             placeholder="在这里输入消息"
                             v-model="msg"
+                            @keyup.enter="sendMsg"
                             style="margin:5px;font-size:14px; border: none; resize:none; cursor: pointer; width:100%;outline:none; padding:5px"
                         />
                     </footer>
