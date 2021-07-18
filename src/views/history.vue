@@ -224,7 +224,7 @@
                             </a>
                         </p>
                         <!-- 全部对局 -->
-                        <div v-if="tab === 'All'">
+                        <div v-if="tab === 'All'" class="hitory-box">
                             <a
                                 class="panel-block"
                                 v-for="(game, index) in getHistorySummaries"
@@ -249,7 +249,7 @@
                             </a>
                         </div>
                         <!-- 胜利对局 -->
-                        <div v-else-if="tab === 'Win'">
+                        <div v-else-if="tab === 'Win'" class="hitory-box">
                             <a
                                 class="panel-block"
                                 v-for="(game, index) in winHistory"
@@ -273,7 +273,7 @@
                             </a>
                         </div>
                         <!-- 失败对局 -->
-                        <div v-else-if="tab === 'Lose'">
+                        <div v-else-if="tab === 'Lose'" class="hitory-box">
                             <a
                                 class="panel-block"
                                 v-for="(game, index) in loseHistory"
@@ -297,7 +297,7 @@
                             </a>
                         </div>
                         <!-- 平局 -->
-                        <div v-else>
+                        <div v-else class="hitory-box">
                             <a
                                 class="panel-block"
                                 v-for="(game, index) in drawHistory"
@@ -416,5 +416,9 @@
 <style>
     .level {
         width: 100%;
+    }
+    .hitory-box {
+        height: 22em;
+        overflow: auto;
     }
 </style>
