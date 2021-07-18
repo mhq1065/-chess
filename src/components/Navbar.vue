@@ -33,7 +33,7 @@
                             </router-link>
                             <!-- </a> -->
                             <hr class="navbar-divider" />
-                            <a class="navbar-item">
+                            <a class="navbar-item" @click="quit">
                                 退出登录
                             </a>
                         </div>
@@ -57,6 +57,11 @@
         mounted() {
             let data = store.getters.getUser;
             this.username = data.username || "";
+        },
+        methods: {
+            quit() {
+                this.$emit("quit")
+            },
         },
     });
 </script>

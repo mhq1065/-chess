@@ -40,16 +40,13 @@ export default new Vuex.Store({
             localStorage.removeItem(JWT_KEY);
         },
         updateUser(state, user: userInterface) {
+            console.log("updateUser", user);
             state.usermsg = user;
             localStorage.setItem(USER_NAME, user.username);
             localStorage.setItem(USER_PASSWORD, user.pwd);
         },
         clearUser(state) {
-            state.usermsg = {
-                username: "",
-                pwd: "",
-            };
-            localStorage.setItem(USER_NAME, "");
+            state.usermsg.pwd = "";
             localStorage.setItem(USER_PASSWORD, "");
         },
     },

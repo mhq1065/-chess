@@ -173,12 +173,17 @@
                     this.orientation == "white" ? "black" : "white";
                 this.board.orientation(this.orientation);
             },
+            // 退出登录
+            quit() {
+                store.commit("clearJWT");
+                this.$router.push("/");
+            },
         },
     });
 </script>
 <template>
     <div>
-        <navbar />
+        <navbar @quit="quit" />
         <popup :isShow="isShowPopup">
             {{ popupMsg }}
         </popup>

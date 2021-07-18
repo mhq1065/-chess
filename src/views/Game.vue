@@ -32,7 +32,7 @@
 <template>
     <div>
         <!-- 顶栏 -->
-        <navbar />
+        <navbar @quit="quit" />
         <!-- 加载等待动画 -->
         <loading
             msg="正在匹配中..."
@@ -40,7 +40,7 @@
             @closeWaiting="closeWaiting"
         />
         <popup :isShow="isShowPopup">
-            游戏结束
+            对方退出 游戏结束
         </popup>
         <div
             class="container section game-container"
@@ -166,7 +166,7 @@
                 msgList: [], // 消息列表
                 gameInfo: {}, //对局双方信息
                 isWaiting: false,
-                waitingIO: null,
+                waitingIO: null,// 等待ws对象
                 isShowPopup: false,
             };
         },
@@ -402,8 +402,12 @@
                 console.log("play");
             },
             quit() {
-                console.log("手动结束Game");
-                this.io.emit("quit");
+                console.log("退出");
+                if (this.io != null) {
+                    this.io.close();
+                }
+                store.commit("clearJWT");
+                this.$router.push("/");
             },
             // 初始化websocket
             initWS(io) {
