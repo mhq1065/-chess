@@ -80,7 +80,16 @@
             try {
                 this.getHistoryStat = await getHistoryStat();
                 let historyR = await getHistorySummaries();
-                this.getHistorySummaries = historyR.summaries;
+                this.getHistorySummaries = historyR.summaries.sort((a, b) => {
+                    let r = Date.parse(a.time) - Date.parse(b.time);
+                    if (r < 0) {
+                        return 1;
+                    } else if (r > 0) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                });
                 console.log("getHistoryStat:", this.getHistoryStat);
                 console.log("getHistorySummaries", this.getHistorySummaries);
                 this.initChessBoard();
