@@ -26,18 +26,17 @@
                             </p>
                         </div>
                     </div>
-                </div>
-                <div class="field">
-                    <div class="control">
-                        <input class="input is-info" v-model="msg" />
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="control">
-                        <button class="button is-primary" @click="sendMsg">
-                            发送
-                        </button>
-                    </div>
+                    <footer
+                        class="card-footer"
+                        style="position:absolute; bottom:0px; width:    %"
+                    >
+                        <input
+                            class=""
+                            placeholder="在这里输入消息"
+                            v-model="msg"
+                            style="margin:5px;font-size:14px; border: none; resize:none; cursor: pointer; width:100%;outline:none; padding:5px"
+                        />
+                    </footer>
                 </div>
             </div>
         </article>

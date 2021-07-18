@@ -298,9 +298,9 @@
                             to: target,
                             promotion: "q", // NOTE: always promote to a queen for example simplicity
                         });
+                        if (move === null) return "snapback";
                         that.emitMove(`${source}-${target}`);
                         that.updateStep();
-                        if (move === null) return "snapback";
                     },
                     onMouseoverSquare: (square) => {
                         if (orientation == "white") {
