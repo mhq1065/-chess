@@ -183,7 +183,7 @@
 </script>
 <template>
     <div>
-        <navbar @quit="quit" />
+        <navbar @quit="quit" showGameEntry="true" />
         <popup :isShow="isShowPopup">
             {{ popupMsg }}
         </popup>

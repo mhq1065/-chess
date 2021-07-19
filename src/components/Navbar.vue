@@ -21,6 +21,11 @@
 
             <div class="navbar-menu">
                 <div class="navbar-end">
+                    <div class="navbar-item" v-show="showGameEntry">
+                        <button class="button is-light" @click="gotoPlay">
+                            进入游戏
+                        </button>
+                    </div>
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link"> Welcome! {{ username }} </a>
 
@@ -54,13 +59,22 @@
                 username: "",
             };
         },
+        props: {
+            showGameEntry: {
+                type: Boolean,
+                default: false,
+            },
+        },
         mounted() {
             let data = store.getters.getUser;
             this.username = data.username || "";
         },
         methods: {
             quit() {
-                this.$emit("quit")
+                this.$emit("quit");
+            },
+            gotoPlay() {
+                this.$router.push("game");
             },
         },
     });
